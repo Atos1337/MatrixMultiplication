@@ -124,7 +124,7 @@ class Matrix(arr: Array<IntArray>) {
             return usualMultiply(other)
         }
 
-        val res = Matrix(Array(rows) { IntArray(columns) { 0 } })
+        val res = Matrix(Array(rows) { IntArray(other.columns) { 0 } })
 
         val a: Matrix = this.additionToSquare(n)
         val b: Matrix = other.additionToSquare(n)
