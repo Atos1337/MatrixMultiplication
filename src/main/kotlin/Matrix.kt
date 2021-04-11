@@ -24,17 +24,17 @@ class Matrix(arr: Array<IntArray>) {
         }
     }
 
-    constructor(a11: Matrix, a12: Matrix, a21: Matrix, a22: Matrix) {
+    constructor(a11: Matrix, a12: Matrix, a21: Matrix, a22: Matrix) : this(arrayOf(intArrayOf(0))) {
         val n: Int = a11.rows
-        this.data = Array(n shl 1) { IntArray(n shl 1) { 0 } }
+        data = Array(n shl 1) { IntArray(n shl 1) { 0 } }
         for (i in 0 until n) {
             a11[i].copyInto(data[i])
             a12[i].copyInto(data[i], n)
             a21[i].copyInto(data[i + n])
             a22[i].copyInto(data[i + n], n)
         }
-        this.rows = n
-        this.columns = n
+        rows = n shl 1
+        columns = n shl 1
     }
 
     operator fun get(i: Int): IntArray = data[i]
@@ -89,12 +89,12 @@ class Matrix(arr: Array<IntArray>) {
             data[i].copyInto(a11[i], 0, 0, n)
             data[i].copyInto(a12[i], 0, n)
             data[i + n].copyInto(a21[i], 0, 0, n)
-            data[i + n].copyInto(a22[i], n, 0)
+            data[i + n].copyInto(a22[i], 0, n)
         }
         return Pair(Pair(a11, a12), Pair(a21, a22))
     }
 
-    private fun usualMultiply(other: Matrix): Matrix {
+    fun usualMultiply(other: Matrix): Matrix {
         val res = Matrix(Array(rows) { IntArray(other.columns) { 0 } })
         val column = IntArray(other.rows) { 0 }
         for (j in 0 until other.columns) {
@@ -125,14 +125,14 @@ class Matrix(arr: Array<IntArray>) {
 
         val res = Matrix(Array(rows) { IntArray(columns) { 0 } })
 
-        this.additionToSquare(n)
-        other.additionToSquare(n)
+        val a: Matrix = this.additionToSquare(n)
+        val b: Matrix = other.additionToSquare(n)
 
-        val (p11, p12) = this.splitIn4Matrix()
+        val (p11, p12) = a.splitIn4Matrix()
         val (a11, a12) = p11
         val (a21, a22) = p12
 
-        val (p21, p22) = other.splitIn4Matrix()
+        val (p21, p22) = b.splitIn4Matrix()
         val (b11, b12) = p21
         val (b21, b22) = p22
 
@@ -147,7 +147,7 @@ class Matrix(arr: Array<IntArray>) {
         val c11: Matrix = p1 + p4 - p5 + p7
         val c12: Matrix = p3 + p5
         val c21: Matrix = p2 + p4
-        val c22: Matrix = p1 - p2 - p3 + p6
+        val c22: Matrix = p1 - p2 + p3 + p6
 
         val c = Matrix(c11, c12, c21, c22)
 
@@ -163,7 +163,11 @@ class Matrix(arr: Array<IntArray>) {
 
     override fun equals(other: Any?): Boolean {
         if (other is Matrix) {
-            return data.contentEquals(other.data)
+            var isSame = true
+            for (i in 0 until rows) {
+                isSame = isSame and data[i].contentEquals(other.data[i])
+            }
+            return isSame and isSameSize(other)
         }
         return false
     }
@@ -179,7 +183,7 @@ class Matrix(arr: Array<IntArray>) {
 fun ceilLog2(n: Int): Int = (ceil(log2(n.toDouble()))).toInt()
 
 fun newDim(a: Matrix, b: Matrix): Int {
-    return 1 shr max(ceilLog2(a.rows), max(ceilLog2(a.columns), ceilLog2(b.columns)))
+    return 1 shl max(ceilLog2(a.rows), max(ceilLog2(a.columns), ceilLog2(b.columns)))
 }
 
 fun main() {
